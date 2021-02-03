@@ -1,0 +1,6 @@
+building:
+  filename: rnabot.building.yaml
+name: rnabot
+traffic_maps:
+  {}
+version: 1

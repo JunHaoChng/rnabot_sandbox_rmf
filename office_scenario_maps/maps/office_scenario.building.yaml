@@ -1,0 +1,45 @@
+levels:
+  L1:
+    doors:
+      - [10, 3, {motion_axis: [1, start], motion_degrees: [3, 90], motion_direction: [2, 1], name: [1, door01], type: [1, sliding]}]
+      - [11, 9, {motion_axis: [1, start], motion_degrees: [3, 90], motion_direction: [2, 1], name: [1, door02], type: [1, sliding]}]
+    drawing:
+      filename: healthcare_floorplan.png
+    elevation: 0
+    flattened_x_offset: 0
+    flattened_y_offset: 0
+    lanes:
+      - [4, 6, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""]}]
+    layers:
+      {}
+    measurements:
+      - [7, 8, {distance: [3, 7.1]}]
+    models:
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3634.303, y: 1151.148, yaw: -0.3552, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3625.203, y: 1186.2, yaw: -0.2353, z: 0}
+      - {model_name: OpenRobotics/Table, name: OpenRobotics/Table, static: true, x: 3377.43, y: 1115.947, yaw: 1.3339, z: 0}
+      - {model_name: OpenRobotics/Table, name: OpenRobotics/Table, static: true, x: 3405.039, y: 1001.912, yaw: 1.3286, z: 0}
+    vertices:
+      - [3829.207, 970.25, 0, ""]
+      - [3182.245, 813.234, 0, ""]
+      - [3097.149, 1165.225, 0, ""]
+      - [3165.885, 1182.409, 0, ""]
+      - [3576.362, 1208.087, 0, tinyRobot1_charger, {is_charger: [4, true], is_parking_spot: [4, true], spawn_robot_name: [1, tinyRobot2], spawn_robot_type: [1, TinyRobot]}]
+      - [3576.362, 1208.087, 0, ""]
+      - [3576.505, 1125.626, 0, pt1]
+      - [3586.245, 918.614, 0, ""]
+      - [3508.476, 1258.013, 0, ""]
+      - [3550.662, 1281.212, 0, ""]
+      - [3240.762, 1203.872, 0, ""]
+      - [3622.576, 1299.584, 0, ""]
+      - [3740.95, 1327.64, 0, ""]
+    walls:
+      - [0, 1, {alpha: [3, 1], texture_name: [1, default]}]
+      - [1, 2, {alpha: [3, 1], texture_name: [1, default]}]
+      - [2, 3, {alpha: [3, 1], texture_name: [1, default]}]
+      - [9, 10, {alpha: [3, 1], texture_name: [1, default]}]
+      - [12, 0, {alpha: [3, 1], texture_name: [1, default]}]
+      - [11, 12, {alpha: [3, 1], texture_name: [1, default]}]
+lifts:
+  {}
+name: building
