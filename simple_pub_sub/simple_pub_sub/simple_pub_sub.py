@@ -56,7 +56,7 @@ def parse_argv(argv=sys.argv[1:]):
     return args
 
 class Simple_Pub_Sub(Node):
-    def __init__(self, rmf_task, enable_timer=True, show_fleet_state=False, rmf_topic=1):
+    def __init__(self, rmf_task, enable_timer=True, show_fleet_state=False):#, rmf_topic=1):
         super().__init__('simple_pub')
         qos_reliable = QoSProfile(
             depth=10,
@@ -66,14 +66,10 @@ class Simple_Pub_Sub(Node):
         self.rmf_task = rmf_task
         self.enable_timer = enable_timer
         self.show_fleet_state = show_fleet_state
-        if rmf_topic ==1:
-            self.pub_rmf_task = self.create_publisher(RnaTask, RMF_TASK, qos_profile=qos_reliable) #  send the task to robot
-        elif rmf_topic ==2:
-            self.pub_rmf_task = self.create_publisher(ModeRequest, RMF_MODE_REQUESTS, qos_profile=qos_reliable)
-        elif rmf_topic ==3:
-            self.pub_rmf_task = self.create_publisher(PathRequest, RMF_PATH_REQUESTS, qos_profile=qos_reliable)
-        else: # rmf_topic ==4:
-            self.pub_rmf_task = self.create_publisher(DestinationRequest, RMF_DESTINATION_REQUESTS, qos_profile=qos_reliable)        
+        self.pub_rna_task = self.create_publisher(RnaTask, RMF_TASK, qos_profile=qos_reliable) #  send the task to robot
+        # self.pub_rmf_task = self.create_publisher(ModeRequest, RMF_MODE_REQUESTS, qos_profile=qos_reliable)
+        self.pub_rmf_path_req = self.create_subscription(PathRequest, RMF_PATH_REQUESTS, qos_profile=qos_reliable)
+        # self.pub_rmf_task = self.create_publisher(DestinationRequest, RMF_DESTINATION_REQUESTS, qos_profile=qos_reliable)        
 
         # receive vsm record from Robot
         self.create_subscription(
@@ -83,9 +79,10 @@ class Simple_Pub_Sub(Node):
         self.create_subscription(
             RnaTaskstatus, RMF_TASK_STATUS, self.rmf_task_status_callback, qos_profile=qos_reliable)        
         
+        # COMMENTING FLEETSTATES OUT FOR NOW
         # receive FleetState status 
-        self.create_subscription(
-            FleetState, RMF_FLEET_STATES, self.robot_status_callback, qos_profile=qos_reliable)
+        # self.create_subscription(
+        #     FleetState, RMF_FLEET_STATES, self.robot_status_callback, qos_profile=qos_reliable)
         
         if self.enable_timer:
             timer_period = 1.0
@@ -107,7 +104,7 @@ class Simple_Pub_Sub(Node):
     def timer_callback(self):
         print("debug: timer_callbak, topic issued only once")
         self.tmr.cancel()
-        self.pub_rmf_task.publish(self.rmf_task)        
+        self.pub_rna_task.publish(self.rmf_task)        
 
 
 def create_rna_task(args):
@@ -196,16 +193,16 @@ def create_mode_requests(args):
     return task
 def create_path_requests():
     task = PathRequest()
-    #task.fleet_name = 'rna'
-    #task.robot_name = ROBOT_UNIQUE_ID
-    #task.task_id = 'T001'
-    #loc = rmf_loc()
-    #loc.x = HOME_POSITION[0]
-    #loc.y = HOME_POSITION[1]
-    #loc.yaw = HOME_POSITION[2]
-    #loc.level_name = 'healthcare room'
-    #loc.index = 123456
-    #task.path.append(loc)
+    task.fleet_name = 'rna'
+    task.robot_name = ROBOT_UNIQUE_ID
+    task.task_id = 'T001'
+    loc = rmf_loc()
+    loc.x = HOME_POSITION[0]
+    loc.y = HOME_POSITION[1]
+    loc.yaw = HOME_POSITION[2]
+    loc.level_name = 'healthcare room'
+    loc.index = 123456
+    task.path.append(loc)
     return task
 def create_destination_requests():
     task = DestinationRequest()
@@ -227,16 +224,16 @@ def main(argv=sys.argv[1:]):
     args = parse_argv()
     rclpy.init(args=argv)
 
-    if args.rmf_topic == 1: # rna_task
-        task = create_rna_task(args)    
-    elif args.rmf_topic == 2: # mode_requests
-        task = create_mode_requests(args)            
-    elif args.rmf_topic == 3: # path_requests
-        task = create_path_requests()
-    elif args.rmf_topic == 4: # destination_requests
-        task = create_destination_requests()
+    #if args.rmf_topic == 1: # rna_task
+        #task = create_rna_task(args)    
+    #elif args.rmf_topic == 2: # mode_requests
+        #task = create_mode_requests(args)            
+    #elif args.rmf_topic == 3: # path_requests
+        #task = create_path_requests()
+    #elif args.rmf_topic == 4: # destination_requests
+        #task = create_destination_requests()
 
-    node = Simple_Pub_Sub(task, bool(args.enable_timer), bool(args.show_fleet_state), args.rmf_topic)
+    node = Simple_Pub_Sub(task, bool(args.enable_timer), bool(args.show_fleet_state))#, args.rmf_topic)
     try:
         rclpy.spin(node)
     finally:
