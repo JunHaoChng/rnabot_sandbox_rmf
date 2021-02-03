@@ -8,6 +8,9 @@ levels:
     elevation: 0
     flattened_x_offset: 0
     flattened_y_offset: 0
+    floors:
+      - parameters: {texture_name: [1, blue_linoleum], texture_rotation: [3, 0], texture_scale: [3, 1]}
+        vertices: [1, 0, 12, 2]
     lanes:
       - [4, 6, {bidirectional: [4, true], demo_mock_floor_name: [1, ""], demo_mock_lift_name: [1, ""], graph_idx: [2, 0], orientation: [1, ""]}]
     layers:
@@ -19,6 +22,19 @@ levels:
       - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3625.203, y: 1186.2, yaw: -0.2353, z: 0}
       - {model_name: OpenRobotics/Table, name: OpenRobotics/Table, static: true, x: 3377.43, y: 1115.947, yaw: 1.3339, z: 0}
       - {model_name: OpenRobotics/Table, name: OpenRobotics/Table, static: true, x: 3405.039, y: 1001.912, yaw: 1.3286, z: 0}
+      - {model_name: OpenRobotics/KitchenSink, name: OpenRobotics/KitchenSink, static: true, x: 3680.938, y: 1283.881, yaw: 1.3678, z: 0}
+      - {model_name: OpenRobotics/MiniSofa, name: OpenRobotics/MiniSofa, static: true, x: 3420.427, y: 1221.226, yaw: -1.779, z: 0}
+      - {model_name: OpenRobotics/MiniSofa, name: OpenRobotics/MiniSofa, static: true, x: 3461.647, y: 1231.119, yaw: -1.7963, z: 0}
+      - {model_name: OpenRobotics/AdjTable, name: OpenRobotics/AdjTable, static: true, x: 3229.989, y: 1092.619, yaw: 1.2379, z: 0}
+      - {model_name: OpenRobotics/AdjTable, name: OpenRobotics/AdjTable, static: true, x: 3255.546, y: 961.539, yaw: 1.3747, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3182.174, y: 1103.337, yaw: -0.4298, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3197.838, y: 1047.277, yaw: -0.3869, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3295.942, y: 935.158, yaw: 2.8613, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3286.049, y: 997.813, yaw: 2.8776, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3207.731, y: 983.798, yaw: -0.4109, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3220.921, y: 920.319, yaw: -0.4085, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3275.332, y: 1081.078, yaw: 2.7928, z: 0}
+      - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3265.439, y: 1137.962, yaw: 2.8491, z: 0}
     vertices:
       - [3829.207, 970.25, 0, ""]
       - [3182.245, 813.234, 0, ""]
