@@ -8,6 +8,7 @@ from rclpy.qos import QoSReliabilityPolicy
 from rclpy.utilities import remove_ros_args
 from rclpy.node import Node
 import rclpy
+import nudged
 
 # from rmf_task_msgs.msg import Loop
 from rmf_fleet_msgs.msg import Location as rmf_loc
@@ -56,20 +57,46 @@ def parse_argv(argv=sys.argv[1:]):
     return args
 
 class Simple_Pub_Sub(Node):
-    def __init__(self, rmf_task, enable_timer=True, show_fleet_state=False):#, rmf_topic=1):
+    def __init__(self, rmf_task, enable_timer=True, show_fleet_state=True):#, rmf_topic=1):
         super().__init__('simple_pub')
         qos_reliable = QoSProfile(
             depth=10,
             reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE)
         
+        # Requires four x,y points
+        #                              x   ,  y    
+        self.ref_coordinates_rmf = [[26.95, -20.23], 
+                                    [29.26, -22.38], 
+                                    [11.4, -16.48],
+                                    [12.46, -16.99]]
+        self.ref_coordinates_rna = [[7.2, 16.6], 
+                                    [5.15, 18.35], 
+                                    [23, 12.35],
+                                    [22.05, 12.95]]
+        self.rmf2mir_transform = nudged.estimate(
+            self.ref_coordinates_rmf,
+            self.ref_coordinates_rna
+        )
+        self.mir2rmf_transform = nudged.estimate(
+            self.ref_coordinates_rna,
+            self.ref_coordinates_rmf
+        )
 
+        
+        mse = nudged.estimate_error(self.rmf2mir_transform,
+                                    self.ref_coordinates_rmf,
+                                    self.ref_coordinates_rna)
+        print('transformation estimate error: ',mse) 
         self.rmf_task = rmf_task
         self.enable_timer = enable_timer
         self.show_fleet_state = show_fleet_state
         self.pub_rna_task = self.create_publisher(RnaTask, RMF_TASK, qos_profile=qos_reliable) #  send the task to robot
         # self.pub_rmf_task = self.create_publisher(ModeRequest, RMF_MODE_REQUESTS, qos_profile=qos_reliable)
-        self.pub_rmf_path_req = self.create_subscription(PathRequest, RMF_PATH_REQUESTS, qos_profile=qos_reliable)
         # self.pub_rmf_task = self.create_publisher(DestinationRequest, RMF_DESTINATION_REQUESTS, qos_profile=qos_reliable)        
+        self.pub_fleet_state = self.create_publisher(FleetState, RMF_FLEET_STATES, qos_profile=qos_reliable) #  send the task to robot 
+
+        self.sub_rmf_path_req = self.create_subscription(PathRequest, RMF_PATH_REQUESTS, qos_profile=qos_reliable)
+        self.sub_dummy_fleet_states = self.create_subscription(FleetState, 'dummy_fleet_states', qos_profile=qos_reliable) # TO BE FILLED UP
 
         # receive vsm record from Robot
         self.create_subscription(
@@ -79,33 +106,57 @@ class Simple_Pub_Sub(Node):
         self.create_subscription(
             RnaTaskstatus, RMF_TASK_STATUS, self.rmf_task_status_callback, qos_profile=qos_reliable)        
         
-        # COMMENTING FLEETSTATES OUT FOR NOW
         # receive FleetState status 
-        # self.create_subscription(
-        #     FleetState, RMF_FLEET_STATES, self.robot_status_callback, qos_profile=qos_reliable)
+        self.create_subscription(
+            FleetState, RMF_FLEET_STATES, self.robot_status_callback, qos_profile=qos_reliable)
         
         if self.enable_timer:
             timer_period = 1.0
             self.tmr = self.create_timer(timer_period, self.timer_callback)
     
+        self.fleet_state_timer_pub = self.create_timer(0.1, self.pub_fleet)
+
     def vsm_record_callback(self, vsm_record):
         print(vsm_record.robot_name, vsm_record.patient_id, vsm_record.record_time, vsm_record.heart_rate)
         print(vsm_record.blood_pressure, vsm_record.temperature, vsm_record.respiration_rate, vsm_record.spo2, vsm_record.pain_score)
     def rmf_task_status_callback(self, rmf_status):
         print(rmf_status.task_id, rmf_status.status, rmf_status.started_time, rmf_status.ended_time, rmf_status.description)
-    def robot_status_callback(self, fleet_state):
-        if self.show_fleet_state:
-            print('fleet name:{}, robot name:{}, model:{}, task_id:{}'.
-                                   format(fleet_state.name, fleet_state.robots[0].name, fleet_state.robots[0].model, fleet_state.robots[0].task_id))
-            print(fleet_state.robots[0].battery_percent, fleet_state.robots[0].mode.mode)
-            print(fleet_state.robots[0].location.t)
-            print(fleet_state.robots[0].location.x, fleet_state.robots[0].location.y, fleet_state.robots[0].location.yaw, fleet_state.robots[0].location.level_name)
-            #print(fleet_state.robots[0].path[0].t)
     def timer_callback(self):
         print("debug: timer_callbak, topic issued only once")
         self.tmr.cancel()
-        self.pub_rna_task.publish(self.rmf_task)        
+        self.pub_rna_task.publish(self.rmf_task)           
 
+
+    def pub_fleet(self):
+        fleet_state = FleetState()
+        fleet_state.name = 'rna'
+        now = time.time()
+        now_sec = int(now)
+        now_ns = int((now - now_sec) * 1e9)
+
+        robot_state = RobotState()
+        robot_state.name = ROBOT_UNIQUE_ID
+        robot_state.task_id = robot.current_task_id
+        robot_state.battery_percent = api_response.battery_percentage
+        location = Location()
+        location.x = api_response.position.x
+        location.y = api_response.position.y
+        location.yaw = api_response.position.orientation
+        # TODO Transform yaw from MiR frame to RMF frame
+        mir_pos = [location.x, location.y]
+        rmf_pos = self.mir2rmf_transform.transform(mir_pos)
+        rmf_location = Location()
+        rmf_location.x = rmf_pos[0]
+        rmf_location.y = rmf_pos[1]
+        rmf_location.level_name = "B1" # Hard coded
+        rmf_location.yaw = math.radians(location.yaw) + self.mir2rmf_transform.get_rotation()
+        robot_state.location = rmf_location
+        robot_state.path = robot.remaining_path
+        robot_state.location.t.sec = now_sec
+        robot_state.location.t.nanosec = now_ns
+        robot_state.mode.mode = RobotMode.MODE_DOCKING
+
+        self.status_pub.publish(fleet_state)
 
 def create_rna_task(args):
     # some navigation points hardcode below, to be changed accordingly 
@@ -223,15 +274,6 @@ def create_destination_requests():
 def main(argv=sys.argv[1:]):
     args = parse_argv()
     rclpy.init(args=argv)
-
-    #if args.rmf_topic == 1: # rna_task
-        #task = create_rna_task(args)    
-    #elif args.rmf_topic == 2: # mode_requests
-        #task = create_mode_requests(args)            
-    #elif args.rmf_topic == 3: # path_requests
-        #task = create_path_requests()
-    #elif args.rmf_topic == 4: # destination_requests
-        #task = create_destination_requests()
 
     node = Simple_Pub_Sub(task, bool(args.enable_timer), bool(args.show_fleet_state))#, args.rmf_topic)
     try:

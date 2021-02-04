@@ -8,6 +8,9 @@ Maintainer Email: charayaphan.nakorn.boon.han@gmail.com
 Version: 1.0.0
 License: Apache License 2.0
 
+# Dependencies
+pip install nudged
+
 # Useful Resources:
 [Traffic-Editor Tutorial](https://osrf.github.io/ros2multirobotbook/traffic-editor.html)
 [rmf_demos](https://github.com/osrf/rmf_demos)

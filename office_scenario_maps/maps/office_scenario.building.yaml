@@ -35,6 +35,8 @@ levels:
       - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3220.921, y: 920.319, yaw: -0.4085, z: 0}
       - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3275.332, y: 1081.078, yaw: 2.7928, z: 0}
       - {model_name: OpenRobotics/Chair, name: OpenRobotics/Chair, static: true, x: 3265.439, y: 1137.962, yaw: 2.8491, z: 0}
+      - {model_name: OpenRobotics/TrolleyBedPatient, name: OpenRobotics/TrolleyBedPatient, static: true, x: 3591.102, y: 991.758, yaw: -0.2408, z: 0}
+      - {model_name: OpenRobotics/TrolleyBedPatient, name: OpenRobotics/TrolleyBedPatient, static: true, x: 3677.664, y: 1015.665, yaw: -0.2521, z: 0}
     vertices:
       - [3829.207, 970.25, 0, ""]
       - [3182.245, 813.234, 0, ""]
