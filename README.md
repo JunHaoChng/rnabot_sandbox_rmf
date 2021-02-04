@@ -8,6 +8,9 @@ Maintainer Email: charayaphan.nakorn.boon.han@gmail.com
 Version: 1.0.0
 License: Apache License 2.0
 
+# TODO
+Define predefined coordinates in RMF plane
+
 # Dependencies
 pip install nudged
 
