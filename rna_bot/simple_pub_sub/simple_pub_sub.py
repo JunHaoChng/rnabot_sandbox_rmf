@@ -41,32 +41,32 @@ Bedside_left  = [-3.170, 21.261, 0.9025, 1.557]
 #                 x         y    heading  bed_heading
 Bedside_right = [-1.485, 21.229, 2.143, 1.557]
 
-def parse_argv(argv=sys.argv[1:]):
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-task_id", "--task_id", type=str, help="task id", default='T001')
-    parser.add_argument("-task_name", "--task_name", type=str, help="task name", default='VSM')
-    parser.add_argument("-name", "--patient_name", type=str, help="patient name", default='John')
-    parser.add_argument("-qr", "--qr_code", type=str, help="qr code value", default='1321351')
-    parser.add_argument("-item", "--item_name", type=str, help="item name", default='water')
-    parser.add_argument("-load", "--load_operation", type=str, help="open, or close compartment", default='open')
-    parser.add_argument("-patient_id", "--patient_id", type=int, help="patient_id", default=2)
-    parser.add_argument("-robot", "--robot_id", type=str, help="robot id", default=ROBOT_UNIQUE_ID)
-    parser.add_argument("-timer", "--enable_timer", type=int, help="enable_timer for debugging", default=1)
-    parser.add_argument("-status", "--show_fleet_state", type=int, help="show_fleet_state msg", default=0)
-    parser.add_argument("-bed", "--bed", type=int, help="bed number: i.e 1, 2 or...", default=1)
-    parser.add_argument("-escape", "--escape_on", type=int, help="1 is on , 0 is off", default=1)
-    parser.add_argument("-topic", "--rmf_topic", type=int, help="1=RnaTask, 2=ModeRequest, 3=PathRequest, 4=DestinationRequest", default=1)
-    parser.add_argument("-mode", "--mode", type=int, help="robot mode", default=1)
-    parser.add_argument("-schedule_type", "--schedule_type", type=str, help="schedule_type", default='NONE_SCHEDULE')
-    parser.add_argument("-schedule_time", "--schedule_time", type=str, help="in format of yyyy-mm-dd hh:mm:ss", default='yyyy-mm-dd hh:mm:ss')
+# def parse_argv(argv=sys.argv[1:]):
+#     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+#     parser.add_argument("-task_id", "--task_id", type=str, help="task id", default='T001')
+#     parser.add_argument("-task_name", "--task_name", type=str, help="task name", default='VSM')
+#     parser.add_argument("-name", "--patient_name", type=str, help="patient name", default='John')
+#     parser.add_argument("-qr", "--qr_code", type=str, help="qr code value", default='1321351')
+#     parser.add_argument("-item", "--item_name", type=str, help="item name", default='water')
+#     parser.add_argument("-load", "--load_operation", type=str, help="open, or close compartment", default='open')
+#     parser.add_argument("-patient_id", "--patient_id", type=int, help="patient_id", default=2)
+#     parser.add_argument("-robot", "--robot_id", type=str, help="robot id", default=ROBOT_UNIQUE_ID)
+#     parser.add_argument("-timer", "--enable_timer", type=int, help="enable_timer for debugging", default=1)
+#     parser.add_argument("-status", "--show_fleet_state", type=int, help="show_fleet_state msg", default=0)
+#     parser.add_argument("-bed", "--bed", type=int, help="bed number: i.e 1, 2 or...", default=1)
+#     parser.add_argument("-escape", "--escape_on", type=int, help="1 is on , 0 is off", default=1)
+#     parser.add_argument("-topic", "--rmf_topic", type=int, help="1=RnaTask, 2=ModeRequest, 3=PathRequest, 4=DestinationRequest", default=1)
+#     parser.add_argument("-mode", "--mode", type=int, help="robot mode", default=1)
+#     parser.add_argument("-schedule_type", "--schedule_type", type=str, help="schedule_type", default='NONE_SCHEDULE')
+#     parser.add_argument("-schedule_time", "--schedule_time", type=str, help="in format of yyyy-mm-dd hh:mm:ss", default='yyyy-mm-dd hh:mm:ss')
 
-    parser.add_argument(
-        'argv', nargs=argparse.REMAINDER,
-        help='Pass arbitrary arguments to the executable')
+#     parser.add_argument(
+#         'argv', nargs=argparse.REMAINDER,
+#         help='Pass arbitrary arguments to the executable')
     
-    argv = remove_ros_args(args=argv)
-    args = parser.parse_args(argv)
-    return args
+#     argv = remove_ros_args(args=argv)
+#     args = parser.parse_args(argv)
+#     return args
 
 class Simple_Pub_Sub(Node):
     def __init__(self, rna_task) # enable_timer=True, show_fleet_state=True):#, rmf_topic=1):
@@ -112,7 +112,7 @@ class Simple_Pub_Sub(Node):
         
         if self.enable_timer:
             timer_period = 1.0
-            self.tmr = self.create_timer(timer_period, self.timer_callback(args))
+            self.tmr = self.create_timer(timer_period, self.rna_task_callback)
 
         self.create_subscription(
             PathRequest, RMF_PATH_REQUESTS, self.path_req_callback, self.qos_profile=qos_reliable)
@@ -122,13 +122,73 @@ class Simple_Pub_Sub(Node):
         print(vsm_record.blood_pressure, vsm_record.temperature, vsm_record.respiration_rate, vsm_record.spo2, vsm_record.pain_score)
     def rmf_task_status_callback(self, rmf_status):
         print(rmf_status.task_id, rmf_status.status, rmf_status.started_time, rmf_status.ended_time, rmf_status.description)
-    def timer_callback(self, args):
+    
+    def rna_task_callback(self, args):
+        
+        home = HOME_POSITION
+        PRDEF_POS = (Bedside_left, Neutral_point, Bedside_right)
+        
+        task = RnaTask()
+        # common parameters for all the tasks
+        task.task_id =  args.task_id #'T001'
+        task.task_name = args.task_name        
+        task.robot_name = args.robot_id
+        # home position
+        loc = Location()
+        loc.x = home[0]
+        loc.y = home[1]
+        loc.heading = home[2]
+        task.home_position = loc    
+
+        if task.task_name in ('VSM', 'MEDICINE_DELIVERY', 'ITEM_DELIVERY'):
+            task.bed_id = args.bed
+            task.patient_name = args.patient_name
+            task.patient_id = args.patient_id
+            task.barcode = args.qr_code
+            task.item_name = args.item_name
+            
+            # schedule task checking
+            task.schedule_type = args.schedule_type
+            if task.schedule_type != 'NONE_SCHEDULE': # if it's not NONE_SCHEDULE, the field of task.schedule_time need to be specified
+                task.schedule_time = args.schedule_time # in format of "yyyy-mm-dd hh:mm:ss"
+
+            # predefined patient engage points
+            for pos in PRDEF_POS:
+                prepos = RnaPredefinepos()
+                loc = Location()
+                loc.x = pos[0]
+                loc.y = pos[1]
+                loc.heading = pos[2]
+                prepos.point=loc
+                prepos.bed_heading= pos[3]
+                task.pre_def_pos.append(prepos)     
+        elif  task.task_name == 'GO_NURSE_STATION':
+            loc = Location()
+            loc.x = NURSE_STATION[0]
+            loc.y = NURSE_STATION[1]
+            loc.heading = NURSE_STATION[2]
+            task.nurse_station = loc
+        elif  task.task_name == 'CODE_RED_BLUE':    
+            escape = RnaEmergency()
+            loc = Location()
+            loc.x = home[0] # hardcode here for temp testing, to be defined the emergency holding point
+            loc.y = home[1]
+            loc.heading = home[2]
+            escape.point = loc
+            escape.emergency_on = bool(args.escape_on) # True/False to switch it on/off
+            task.escape = escape
+        elif  task.task_name == 'LOAD_ITEM':
+            task.item_name = args.item_name
+            task.load_operation = args.load_operation    
+        #elif task.task_name == 'CANCEL_TASK' or task.task_name == 'GO_HOME':        
+            #pass
+
         print("debug: timer_callbak, topic issued only once")
         self.tmr.cancel()
         
         # On reciept of a path_request. Transform Locations to RNA plane
 
-        # Set the 
+        # Set the path request destination to be a task name
         self.pub_rna_task.publish(self.rna_task)           
 
     def path_req_callback(self, msg: PathRequest, rna_task):
@@ -144,121 +204,11 @@ class Simple_Pub_Sub(Node):
         # Only assign a rna task when path request is recieved
         self.rna_task = rna_task
 
-
-def create_rna_task(args):
-
-    home = HOME_POSITION
-    PRDEF_POS = (Bedside_left, Neutral_point, Bedside_right)
-    
-    task = RnaTask()
-    # common parameters for all the tasks
-    task.task_id =  args.task_id #'T001'
-    task.task_name = args.task_name        
-    task.robot_name = args.robot_id
-    # home position
-    loc = Location()
-    loc.x = home[0]
-    loc.y = home[1]
-    loc.heading = home[2]
-    task.home_position = loc    
-
-    if task.task_name in ('VSM', 'MEDICINE_DELIVERY', 'ITEM_DELIVERY'):
-        task.bed_id = args.bed
-        task.patient_name = args.patient_name
-        task.patient_id = args.patient_id
-        task.barcode = args.qr_code
-        task.item_name = args.item_name
-        
-        # schedule task checking
-        task.schedule_type = args.schedule_type
-        if task.schedule_type != 'NONE_SCHEDULE': # if it's not NONE_SCHEDULE, the field of task.schedule_time need to be specified
-            task.schedule_time = args.schedule_time # in format of "yyyy-mm-dd hh:mm:ss"
-
-        # predefined patient engage points
-        for pos in PRDEF_POS:
-            prepos = RnaPredefinepos()
-            loc = Location()
-            loc.x = pos[0]
-            loc.y = pos[1]
-            loc.heading = pos[2]
-            prepos.point=loc
-            prepos.bed_heading= pos[3]
-            task.pre_def_pos.append(prepos)     
-    elif  task.task_name == 'GO_NURSE_STATION':
-        loc = Location()
-        loc.x = NURSE_STATION[0]
-        loc.y = NURSE_STATION[1]
-        loc.heading = NURSE_STATION[2]
-        task.nurse_station = loc
-    elif  task.task_name == 'CODE_RED_BLUE':    
-        escape = RnaEmergency()
-        loc = Location()
-        loc.x = home[0] # hardcode here for temp testing, to be defined the emergency holding point
-        loc.y = home[1]
-        loc.heading = home[2]
-        escape.point = loc
-        escape.emergency_on = bool(args.escape_on) # True/False to switch it on/off
-        task.escape = escape
-    elif  task.task_name == 'LOAD_ITEM':
-        task.item_name = args.item_name
-        task.load_operation = args.load_operation    
-    #elif task.task_name == 'CANCEL_TASK' or task.task_name == 'GO_HOME':        
-        #pass
-    return task
-def create_mode_requests(args):
-    task = ModeRequest()
-    #task.fleet_name = 'rna'
-    #task.robot_name = ROBOT_UNIQUE_ID
-    #task.task_id = 'T001'
-    #mode = RobotMode()
-    #mode.mode = args.mode
-    #task.mode = mode
-    #para=ModeParameter()
-    #para.name = 'tt1'
-    #para.value = 'test'
-    #task.parameters.append(para)
-    return task
-def create_path_requests():
-    task = PathRequest()
-    task.fleet_name = 'rna'
-    task.robot_name = ROBOT_UNIQUE_ID
-    task.task_id = 'T001'
-    loc = rmf_loc()
-    loc.x = HOME_POSITION[0]
-    loc.y = HOME_POSITION[1]
-    loc.yaw = HOME_POSITION[2]
-    loc.level_name = 'healthcare room'
-    loc.index = 123456
-    task.path.append(loc)
-    return task
-def create_destination_requests():
-    task = DestinationRequest()
-    #task.fleet_name = 'rna'
-    #task.robot_name = ROBOT_UNIQUE_ID
-    #task.task_id = 'T002'
-    #loc = rmf_loc()
-    #loc.x = HOME_POSITION[0]
-    #loc.y = HOME_POSITION[1]
-    #loc.yaw = HOME_POSITION[2]
-    #loc.level_name = 'healthcare room'
-    #loc.index = 78910
-    #task.destination = loc
-    return task
-
 def main(argv=sys.argv[1:]):
     args = parse_argv()
     rclpy.init(args=argv)
 
-    # if args.rmf_topic == 1: # rna_task
-    task = create_rna_task(args)    
-    # elif args.rmf_topic == 2: # mode_requests
-    #     task = create_mode_requests(args)            
-    # elif args.rmf_topic == 3: # path_requests
-    #     task = create_path_requests()
-    # elif args.rmf_topic == 4: # destination_requests
-    #     task = create_destination_requests()
-
-    node = Simple_Pub_Sub(task) # task, bool(args.enable_timer), bool(args.show_fleet_state))#, args.rmf_topic)
+    node = Simple_Pub_Sub(task)
     try:
         rclpy.spin(node)
     finally:
