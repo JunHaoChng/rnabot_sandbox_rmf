@@ -69,7 +69,7 @@ Bedside_right = [-1.485, 21.229, 2.143, 1.557]
 #     return args
 
 class Simple_Pub_Sub(Node):
-    def __init__(self, rna_task) # enable_timer=True, show_fleet_state=True):#, rmf_topic=1):
+    def __init__(self, rna_task): # enable_timer=True, show_fleet_state=True):#, rmf_topic=1):
         super().__init__('simple_pub')
         qos_reliable = QoSProfile(
             depth=10,
@@ -77,14 +77,14 @@ class Simple_Pub_Sub(Node):
         
         # Requires four x,y points
         #                              x   ,  y    
-        self.ref_coordinates_rmf = [[NURSE_STATION[0], NURSE_STATION[1]], 
+        self.ref_coordinates_rna = [[NURSE_STATION[0], NURSE_STATION[1]], 
                                     [HOME_POSITION[0], HOME_POSITION[1]], 
                                     [Neutral_point[0], Neutral_point[1]],
                                     [Bedside_right[0], Bedside_right[1]]]
-        self.ref_coordinates_rna = [[7.2, 16.6], 
-                                    [5.15, 18.35], 
-                                    [23, 12.35],
-                                    [22.05, 12.95]]
+        self.ref_coordinates_rmf = [[75.787, -23.029], 
+                                    [73.013, -23.350], 
+                                    [73.537, -20.965],
+                                    [74.57, -20.78]]
         self.rmf2rna_transform = nudged.estimate(
             self.ref_coordinates_rmf,
             self.ref_coordinates_rna
@@ -115,7 +115,7 @@ class Simple_Pub_Sub(Node):
             self.tmr = self.create_timer(timer_period, self.rna_task_callback)
 
         self.create_subscription(
-            PathRequest, RMF_PATH_REQUESTS, self.path_req_callback, self.qos_profile=qos_reliable)
+            PathRequest, RMF_PATH_REQUESTS, self.path_req_callback, qos_profile=qos_reliable)
 
     def vsm_record_callback(self, vsm_record):
         print(vsm_record.robot_name, vsm_record.patient_id, vsm_record.record_time, vsm_record.heart_rate)
