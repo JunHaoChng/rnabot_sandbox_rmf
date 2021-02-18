@@ -18,7 +18,7 @@
   </include>
 
   <!-- tinyRobot fleet adapter and robot state aggregator -->
-<group>
+<!-- <group>
   <let name="fleet_name" value="tinyRobot"/>
   <include file="$(find-pkg-share office_scenario_launch)/adapters/tinyRobot_adapter.launch.xml">
     <arg name="fleet_name" value="$(var fleet_name)"/>
@@ -30,7 +30,7 @@
     <arg name="fleet_name" value="$(var fleet_name)"/>
     <arg name="use_sim_time" value="true"/>
   </include>
-</group>
+</group> -->
 
 
 

@@ -77,14 +77,14 @@ class Simple_Pub_Sub(Node):
         
         # Requires four x,y points
         #                              x   ,  y    
-        self.ref_coordinates_rmf = [[NURSE_STATION[0], NURSE_STATION[1]], 
+        self.ref_coordinates_rna = [[NURSE_STATION[0], NURSE_STATION[1]], 
                                     [HOME_POSITION[0], HOME_POSITION[1]], 
                                     [Neutral_point[0], Neutral_point[1]],
                                     [Bedside_right[0], Bedside_right[1]]]
-        self.ref_coordinates_rna = [[7.2, 16.6], 
-                                    [5.15, 18.35], 
-                                    [23, 12.35],
-                                    [22.05, 12.95]]
+        self.ref_coordinates_rmf = [[75.787, -23.029], 
+                                    [73.013, -23.350], 
+                                    [73.537, -20.965],
+                                    [74.57, -20.78]]
         self.rmf2rna_transform = nudged.estimate(
             self.ref_coordinates_rmf,
             self.ref_coordinates_rna
