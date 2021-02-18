@@ -69,7 +69,7 @@ Bedside_right = [-1.485, 21.229, 2.143, 1.557]
 #     return args
 
 class Simple_Pub_Sub(Node):
-    def __init__(self, rna_task) # enable_timer=True, show_fleet_state=True):#, rmf_topic=1):
+    def __init__(self, rna_task): # enable_timer=True, show_fleet_state=True):#, rmf_topic=1):
         super().__init__('simple_pub')
         qos_reliable = QoSProfile(
             depth=10,
@@ -115,7 +115,7 @@ class Simple_Pub_Sub(Node):
             self.tmr = self.create_timer(timer_period, self.rna_task_callback)
 
         self.create_subscription(
-            PathRequest, RMF_PATH_REQUESTS, self.path_req_callback, self.qos_profile=qos_reliable)
+            PathRequest, RMF_PATH_REQUESTS, self.path_req_callback, qos_profile=qos_reliable)
 
     def vsm_record_callback(self, vsm_record):
         print(vsm_record.robot_name, vsm_record.patient_id, vsm_record.record_time, vsm_record.heart_rate)
